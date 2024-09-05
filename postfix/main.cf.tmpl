@@ -1,0 +1,32 @@
+# Templated domain settings
+myhostname = {{ hostname }}
+mydestination = {{ destname }}
+
+virtual_alias_maps = inline:{% raw %}{{{% endraw %}@{{ destname }}=catchall@{{ destname }}{% raw %}}}{% endraw %}
+
+# Call out to golang binary for processing
+mailbox_command = /app
+mailbox_size_limit = 0
+
+# Internet accessible
+inet_interfaces = all
+
+# Disable sending
+mynetworks = 127.0.0.1/32
+default_transport = error:This server doesnt send email.
+smtpd_recipient_restrictions = reject_unauth_destination
+smtpd_relay_restrictions = reject_unauth_destination
+smtp_tls_security_level = dane-only
+
+# Enable TLS
+smtpd_tls_security_level = may
+smtpd_tls_chain_files = /etc/certs/chain.pem
+# Maybe?
+#smtpd_tls_received_header=yes
+
+# Logging
+maillog_file = /dev/stdout
+smtpd_tls_loglevel = 1
+
+# Performance: remove stuff we don't need
+biff = no

@@ -1,0 +1,110 @@
+services:
+  #
+  # Mail Servers
+  #
+
+  # Valid: MTA-STS with Let's Encrypt
+  postfix-le-mta-sts:
+    build:
+      context: postfix
+      args:
+        name: a
+    restart: unless-stopped
+    networks:
+      privatenet:
+    ports:
+      - "127.0.0.1:1025:25"
+    volumes:
+      - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
+
+  # Invalid: MTA-STS with unknown/untrusted CA
+  postfix-uk-mta-sts:
+    build:
+      context: postfix
+      args:
+        name: b
+    restart: unless-stopped
+    networks:
+      privatenet:
+    ports:
+      - "127.0.0.2:1025:25"
+    volumes:
+      - ./certs/b.pem:/etc/certs/chain.pem:ro
+
+  # Value but insecure: Unknown/untrusted CA (no MTA-STS)
+  postfix-uk:
+    build:
+      context: postfix
+      args:
+        name: c
+    restart: unless-stopped
+    networks:
+      privatenet:
+    ports:
+      - "127.0.0.3:1025:25"
+    volumes:
+      - ./certs/c.pem:/etc/certs/chain.pem:ro
+
+  # Invalid: MTA-STS with unknown/untrusted CA
+  # but with a spoofed (non-DNSSEC) DANE record
+  postfix-uk-mta-sts-dane:
+    build:
+      context: postfix
+      args:
+        name: d
+    restart: unless-stopped
+    networks:
+      privatenet:
+    ports:
+      - "127.0.0.4:1025:25"
+    volumes:
+      - ./certs/d.pem:/etc/certs/chain.pem:ro
+
+  #
+  # API for web frontend
+  #
+  api:
+    build: api 
+    restart: unless-stopped
+    networks:
+      privatenet:
+        ipv4_address: 10.11.26.34
+    depends_on:
+      - valkey
+
+  #
+  # Static hosting for MTA-STS policy files
+  #
+  nginx:
+    build:
+      context: nginx
+    restart: unless-stopped
+    networks:
+      privatenet:
+    ports:
+      - "127.0.0.1:8443:443"
+    volumes:
+      - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
+    depends_on:
+      - api
+
+  #
+  # Database
+  #
+  valkey:
+    image: "valkey/valkey:7.2-alpine3.20"
+    networks:
+      privatenet:
+
+networks:
+  privatenet:
+    name: postfix-audit-net
+    external: false
+    internal: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.11.26.0/24
+          ip_range: 10.11.26.0/26
+          gateway: 10.11.26.254
+

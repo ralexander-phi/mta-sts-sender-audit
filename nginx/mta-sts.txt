@@ -1,0 +1,4 @@
+version: STSv1
+mode: enforce
+mx: *.audit.alexsci.com
+max_age: 3600

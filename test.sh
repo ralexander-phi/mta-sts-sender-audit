@@ -2,9 +2,9 @@
 
 set -e
 
-docker compose build
-docker compose down || true
-docker compose up -d --wait
+docker compose --env-file dev.env build
+docker compose --env-file dev.env down || true
+docker compose --env-file dev.env up -d --wait
 
 subdomains=(a b c d)
 for i in {1..4}
@@ -40,7 +40,7 @@ do
     echo ""
 done
 
-docker compose down
+docker compose --env-file dev.env down
 echo ""
 echo "SUCCESS!"
 echo ""

@@ -13,7 +13,7 @@ services:
     networks:
       privatenet:
     ports:
-      - "127.0.0.1:1025:25"
+      - "${IP0:?error}:1025:25"
     volumes:
       - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
 
@@ -27,7 +27,7 @@ services:
     networks:
       privatenet:
     ports:
-      - "127.0.0.2:1025:25"
+      - "${IP1:?error}:1025:25"
     volumes:
       - ./certs/b.pem:/etc/certs/chain.pem:ro
 
@@ -41,7 +41,7 @@ services:
     networks:
       privatenet:
     ports:
-      - "127.0.0.3:1025:25"
+      - "${IP2:?error}:1025:25"
     volumes:
       - ./certs/c.pem:/etc/certs/chain.pem:ro
 
@@ -56,7 +56,7 @@ services:
     networks:
       privatenet:
     ports:
-      - "127.0.0.4:1025:25"
+      - "${IP3:?error}:1025:25"
     volumes:
       - ./certs/d.pem:/etc/certs/chain.pem:ro
 
@@ -82,7 +82,7 @@ services:
     networks:
       privatenet:
     ports:
-      - "127.0.0.1:8443:443"
+      - "${IP0:?error}:8443:443"
     volumes:
       - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
     depends_on:

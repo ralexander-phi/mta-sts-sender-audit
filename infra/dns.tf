@@ -40,8 +40,8 @@ resource "digitalocean_record" "A-a" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "A"
 
-  for_each = toset(var.mail_server_labels)
-  name   = "${each.key}.audit"
+  for_each = toset(var.mail_servers_with_sts_labels)
+  name   = "mta-sts.${each.key}.audit"
 
   # Co-hosted with API server
   value  = digitalocean_record.api.value

@@ -57,3 +57,14 @@ resource "digitalocean_record" "TXT-mta-sts" {
 
   value = var.mta_sts_policy_record
 }
+
+resource "digitalocean_record" "TLSRPT" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type = "TXT"
+
+  for_each = toset(var.mail_server_labels)
+  name = "_smtp._tls.${each.key}.audit"
+
+  value = "v=TLSRPTv1; rua=mailto:${var.tlsrpt_address};"
+}
+

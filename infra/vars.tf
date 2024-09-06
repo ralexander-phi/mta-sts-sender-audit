@@ -22,3 +22,9 @@ variable "mta_sts_policy_record" {
   type = string
   default = "v=STSv1; id=20240906T1730;"
 }
+
+variable "tlsrpt_address" {
+  type = string
+  default = "tlsrpt-audit@robalexdev.com"
+}
+

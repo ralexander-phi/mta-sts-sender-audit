@@ -46,3 +46,14 @@ resource "digitalocean_record" "A-a" {
   # Co-hosted with API server
   value  = digitalocean_record.api.value
 }
+
+# MTA-STS record with policy ID
+resource "digitalocean_record" "TXT-mta-sts" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type = "TXT"
+
+  for_each = toset(var.mail_servers_with_sts_labels)
+  name = "_mta-sts.${each.key}.audit"
+
+  value = var.mta_sts_policy_record
+}

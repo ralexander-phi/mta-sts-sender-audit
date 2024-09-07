@@ -15,7 +15,7 @@ services:
     ports:
       - "${IP0:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
+      - "${CERTS_PATH:?error}/audit.alexsci.com/:/etc/certs/:ro"
 
   # Invalid: MTA-STS with unknown/untrusted CA
   postfix-uk-mta-sts:
@@ -29,7 +29,7 @@ services:
     ports:
       - "${IP1:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - ./certs/b.pem:/etc/certs/chain.pem:ro
+      - "${INVALID_CERTS_PATH:?error}/mail-b.audit.alexsci.com/:/etc/certs/:ro"
 
   # Value but insecure: Unknown/untrusted CA (no MTA-STS)
   postfix-uk:
@@ -43,7 +43,7 @@ services:
     ports:
       - "${IP2:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - ./certs/c.pem:/etc/certs/chain.pem:ro
+      - "${INVALID_CERTS_PATH:?error}/mail-c.audit.alexsci.com/:/etc/certs/:ro"
 
   # Invalid: MTA-STS with unknown/untrusted CA
   # but with a spoofed (non-DNSSEC) DANE record
@@ -58,7 +58,7 @@ services:
     ports:
       - "${IP3:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - ./certs/d.pem:/etc/certs/chain.pem:ro
+      - "${INVALID_CERTS_PATH:?error}/mail-d.audit.alexsci.com/:/etc/certs/:ro"
 
   #
   # API for web frontend
@@ -84,7 +84,7 @@ services:
     ports:
       - "${IP0:?error}:${HOST_WEBSECURE_PORT:?error}:443"
     volumes:
-      - ./certs/_wildcard.pem:/etc/certs/chain.pem:ro
+      - "${CERTS_PATH:?error}/audit.alexsci.com/:/etc/certs/:ro"
     depends_on:
       - api
 

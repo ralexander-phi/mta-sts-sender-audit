@@ -14,7 +14,7 @@ create_cert() {
     CERT_PREFIX=$3
     ~/code/mkcert/mkcert "${DN_PREFIX}${DOMAIN}"
     mkdir -p ./invalid-certs/live/$DOMAIN
-    mv "${CERT_PREFIX}${DOMAIN}-key.pem" ./invalid-certs/live/$DOMAIN/key.pem
+    mv "${CERT_PREFIX}${DOMAIN}-key.pem" ./invalid-certs/live/$DOMAIN/privkey.pem
     mv "${CERT_PREFIX}${DOMAIN}.pem"     ./invalid-certs/live/$DOMAIN/fullchain.pem
 }
 

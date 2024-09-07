@@ -9,13 +9,14 @@ services:
       context: postfix
       args:
         name: a
+        certdomain: audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
     ports:
       - "${IP0:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - "${CERTS_PATH:?error}/audit.alexsci.com/:/etc/certs/:ro"
+      - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
 
   # Invalid: MTA-STS with unknown/untrusted CA
   postfix-uk-mta-sts:
@@ -23,13 +24,14 @@ services:
       context: postfix
       args:
         name: b
+        certdomain: mail-b.audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
     ports:
       - "${IP1:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - "${INVALID_CERTS_PATH:?error}/mail-b.audit.alexsci.com/:/etc/certs/:ro"
+      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
 
   # Value but insecure: Unknown/untrusted CA (no MTA-STS)
   postfix-uk:
@@ -37,13 +39,14 @@ services:
       context: postfix
       args:
         name: c
+        certdomain: mail-c.audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
     ports:
       - "${IP2:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - "${INVALID_CERTS_PATH:?error}/mail-c.audit.alexsci.com/:/etc/certs/:ro"
+      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
 
   # Invalid: MTA-STS with unknown/untrusted CA
   # but with a spoofed (non-DNSSEC) DANE record
@@ -52,13 +55,14 @@ services:
       context: postfix
       args:
         name: d
+        certdomain: mail-d.audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
     ports:
       - "${IP3:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - "${INVALID_CERTS_PATH:?error}/mail-d.audit.alexsci.com/:/etc/certs/:ro"
+      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
 
   #
   # API for web frontend
@@ -78,13 +82,15 @@ services:
   nginx:
     build:
       context: nginx
+      args:
+        certdomain: audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
     ports:
       - "${IP0:?error}:${HOST_WEBSECURE_PORT:?error}:443"
     volumes:
-      - "${CERTS_PATH:?error}/audit.alexsci.com/:/etc/certs/:ro"
+      - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     depends_on:
       - api
 

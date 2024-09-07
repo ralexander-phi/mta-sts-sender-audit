@@ -6,16 +6,16 @@ export CAROOT=`pwd`
 
 # Remove all old leaf certs
 rm *alexsci*.pem || true
+rm -Rf ./invalid-certs/
 
 create_cert() {
     DOMAIN=$1
     DN_PREFIX=$2
     CERT_PREFIX=$3
     ~/code/mkcert/mkcert "${DN_PREFIX}${DOMAIN}"
-    rm -Rf $DOMAIN
-    mkdir -p $DOMAIN
-    mv "${CERT_PREFIX}${DOMAIN}-key.pem" $DOMAIN/key.pem
-    mv "${CERT_PREFIX}${DOMAIN}.pem"     $DOMAIN/fullchain.pem
+    mkdir -p ./invalid-certs/live/$DOMAIN
+    mv "${CERT_PREFIX}${DOMAIN}-key.pem" ./invalid-certs/live/$DOMAIN/key.pem
+    mv "${CERT_PREFIX}${DOMAIN}.pem"     ./invalid-certs/live/$DOMAIN/fullchain.pem
 }
 
 for sub in {a,b,c,d}

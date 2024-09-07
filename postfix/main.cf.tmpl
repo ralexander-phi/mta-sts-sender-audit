@@ -20,8 +20,8 @@ smtp_tls_security_level = dane-only
 
 # Enable TLS
 smtpd_tls_security_level = may
-smtpd_tls_cert_file = /etc/certs/fullchain.pem
-smtpd_tls_key_file = /etc/certs/key.pem
+smtpd_tls_cert_file = /etc/letsencrypt/live/{{ certdomain }}/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/{{ certdomain }}/key.pem
 
 # Logging
 maillog_file = /dev/stdout

@@ -12,9 +12,11 @@ FROM python:latest AS template-stage
 RUN pip install jinja2-cli
 COPY main.cf.tmpl /main.cf.tmpl
 ARG name
+ARG certdomain
 RUN jinja2 /main.cf.tmpl                     \
     -D hostname=mail-$name.audit.alexsci.com \
     -D destname=$name.audit.alexsci.com      \
+    -D certdomain=$certdomain                \
     -o /main.cf
 
 

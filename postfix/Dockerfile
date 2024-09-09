@@ -31,9 +31,13 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 
 RUN useradd -m -s /bin/bash catchall
 
+COPY entrypoint.sh /entrypoint.sh
 COPY --from=template-stage main.cf /etc/postfix/main.cf
 COPY --from=build-stage /app /app
 
 EXPOSE 25/tcp 
-CMD [ "/usr/sbin/postfix", "-c", "/etc/postfix", "-vv", "start-fg" ]
+
+# Save the Postgres password to somewhere the mailbox_command can access it
+
+CMD [ "/entrypoint.sh" ]
 

@@ -1,25 +1,34 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/valkey-io/valkey-go"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"os"
 	"strings"
 )
+
+type LogLines struct {
+	gorm.Model
+	Uuid string
+	Line string
+}
 
 type PollForm struct {
 	Users string `form:"users"`
 }
 
 func main() {
-	// Valkey setup
-	ctx := context.Background()
-	db, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{"valkey:6379"}})
+	// Database setup
+	dsn := fmt.Sprintf("host=db user=postgres password=%s dbname=audit port=5432 sslmode=disable TimeZone=UTC", os.Getenv("POSTGRES_PASSWORD"))
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Unable to connect to database: %v\n", err))
 	}
-	defer db.Close()
+
+	// Auto-migration
+	db.AutoMigrate(&LogLines{})
 
 	// Gin setup
 	gin.SetMode(gin.ReleaseMode)
@@ -30,7 +39,7 @@ func main() {
 		})
 	})
 	r.POST("/poll", func(c *gin.Context) {
-		response := gin.H{}
+		response := make(map[string][]string)
 		var form PollForm
 		c.Bind(&form)
 		userIds := strings.Split(form.Users, ",")
@@ -39,22 +48,21 @@ func main() {
 			c.Abort()
 			return
 		}
-		results, err := db.Do(ctx, db.B().Mget().Key(userIds...).Build()).ToArray()
-		if err != nil {
+
+		var logLines []LogLines
+		result := db.Where("uuid IN ?", userIds).Order("created_at, id").Find(&logLines)
+		if result.Error != nil {
 			c.JSON(500, gin.H{"message": "Unable to get"})
 			c.Abort()
-			fmt.Println("Unable to get: ", err)
+			fmt.Println("Unable to get: ", result.Error)
 			return
 		}
-		for i, result := range(results) {
-			_, err := result.ToString()
-			if valkey.IsValkeyNil(err) {
-				// No value was set
-				response[userIds[i]] = false
-			} else {
-				// A value was set
-				response[userIds[i]] = true
+
+		for _, line := range logLines {
+			if _, has := response[line.Uuid]; !has {
+				response[line.Uuid] = []string{}
 			}
+			response[line.Uuid] = append(response[line.Uuid], line.Line)
 		}
 		c.JSON(200, response)
 	})

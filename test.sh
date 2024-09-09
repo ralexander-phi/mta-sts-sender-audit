@@ -25,7 +25,7 @@ do
 
     echo "Checking that email hasn't been seen"
     curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/health | grep "pong"
-    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "false"
+    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "{}"
 
     echo "Send the emails"
     ./test-send-email.exp 127.0.0.$i $UUID $subdomain.audit.alexsci.com
@@ -34,7 +34,7 @@ do
     sleep 1
 
     echo "Checking that email has been seen"
-    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "true"
+    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "$UUID" | grep "Message Received"
 
     echo ""
     echo "Server $subdomain looks OK!"

@@ -13,10 +13,13 @@ services:
     restart: unless-stopped
     networks:
       privatenet:
+        ipv4_address: 10.11.26.11
     ports:
       - "${IP0:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
       - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
 
   # Invalid: MTA-STS with unknown/untrusted CA
   postfix-uk-mta-sts:
@@ -28,10 +31,13 @@ services:
     restart: unless-stopped
     networks:
       privatenet:
+        ipv4_address: 10.11.26.12
     ports:
       - "${IP1:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
 
   # Value but insecure: Unknown/untrusted CA (no MTA-STS)
   postfix-uk:
@@ -43,10 +49,13 @@ services:
     restart: unless-stopped
     networks:
       privatenet:
+        ipv4_address: 10.11.26.13
     ports:
       - "${IP2:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
 
   # Invalid: MTA-STS with unknown/untrusted CA
   # but with a spoofed (non-DNSSEC) DANE record
@@ -59,10 +68,13 @@ services:
     restart: unless-stopped
     networks:
       privatenet:
+        ipv4_address: 10.11.26.14
     ports:
       - "${IP3:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
 
   #
   # API for web frontend
@@ -74,7 +86,9 @@ services:
       privatenet:
         ipv4_address: 10.11.26.34
     depends_on:
-      - valkey
+      - db
+    environment:
+      - POSTGRES_PASSWORD
 
   #
   # Static hosting for MTA-STS policy files
@@ -87,6 +101,7 @@ services:
     restart: unless-stopped
     networks:
       privatenet:
+        ipv4_address: 10.11.26.35
     ports:
       - "${IP0:?error}:${HOST_WEBSECURE_PORT:?error}:443"
     volumes:
@@ -94,13 +109,18 @@ services:
     depends_on:
       - api
 
-  #
-  # Database
-  #
-  valkey:
-    image: "valkey/valkey:7.2-alpine3.20"
+  db:
+    image: postgres:15.2
+    restart: unless-stopped
+    volumes:
+      - ./db:/var/lib/postgresql/data
     networks:
       privatenet:
+        ipv4_address: 10.11.26.36
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=audit
+      - POSTGRES_PASSWORD
 
 networks:
   privatenet:

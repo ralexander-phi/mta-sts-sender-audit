@@ -1,12 +1,20 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/valkey-io/valkey-go"
+	"io/ioutil"
 	"os"
 	"strings"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
+
+type LogLines struct {
+	gorm.Model
+	Uuid string
+	Line string
+}
 
 func main() {
 	// Postfix input
@@ -19,17 +27,26 @@ func main() {
 		panic(fmt.Sprintf("User ID looks invalid: %s\n", userId))
 	}
 
-	// Valkey setup
-	ctx := context.Background()
-	cache, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{"valkey:6379"}})
+	// Postgres password is saved to a file (as ENVs aren't passed down)
+	content, err := ioutil.ReadFile("/postgres-password.txt")
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Unable to get password from file: %v\n", err))
 	}
-	defer cache.Close()
+	password := string(content)
 
-	// Insert key
-	err = cache.Do(ctx, cache.B().Set().Key(userId).Value("1").Build()).Error()
+	// Database setup
+	dsn := fmt.Sprintf("host=db user=postgres password=%s dbname=audit port=5432 sslmode=disable TimeZone=UTC", password)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Unable to connect to database using %s: %v\n", password, err))
+	}
+
+	// Auto-migration
+	db.AutoMigrate(&LogLines{})
+
+	// Log received message
+	result := db.Create(&LogLines{Uuid: userId, Line: "Message Received"})
+	if result.Error != nil {
+		panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
 	}
 }

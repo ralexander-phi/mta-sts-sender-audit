@@ -13,6 +13,7 @@ import (
 type LogLines struct {
 	gorm.Model
 	Uuid string
+	Service string
 	Line string
 }
 
@@ -44,8 +45,26 @@ func main() {
 	// Auto-migration
 	db.AutoMigrate(&LogLines{})
 
-	// Log received message
-	result := db.Create(&LogLines{Uuid: userId, Line: "Message Received"})
+	logLine := fmt.Sprintf(`Message Received:
+		ENVID: %s
+		SENDER: %s
+		ORIGINAL_RECIPIENT: %s
+		CLIENT_ADDRESS: %s
+		CLIENT_HELO: %s
+		CLIENT_HOSTNAME: %s
+		CLIENT_PROTOCOL: %s`,
+		os.Getenv("ENVID"),
+		os.Getenv("SENDER"),
+		os.Getenv("ORIGINAL_RECIPIENT"),
+		os.Getenv("CLIENT_ADDRESS"),
+		os.Getenv("CLIENT_HELO"),
+		os.Getenv("CLIENT_HOSTNAME"),
+		os.Getenv("CLIENT_PROTOCOL"))
+	result := db.Create(&LogLines{
+		Uuid: userId,
+		Service: "postfix",
+		Line: logLine,
+	})
 	if result.Error != nil {
 		panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
 	}

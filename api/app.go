@@ -7,19 +7,27 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"strings"
+	"time"
 )
 
 type LogLines struct {
 	gorm.Model
 	Uuid string
+	Service string
 	Line string
 }
+
 
 type PollForm struct {
 	Users string `form:"users"`
 }
 
 func main() {
+	MTA_STS_POLICY_DOC := `version: STSv1
+mode: enforce
+mx: *.audit.alexsci.com
+max_age: 604800`
+
 	// Database setup
 	dsn := fmt.Sprintf("host=db user=postgres password=%s dbname=audit port=5432 sslmode=disable TimeZone=UTC", os.Getenv("POSTGRES_PASSWORD"))
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -38,8 +46,31 @@ func main() {
 			"pong": "true",
 		})
 	})
+	r.GET("/.well-known/mta-sts.txt", func(c *gin.Context) {
+		// Log info about the connecting client
+		logLine := fmt.Sprintf(`HTTP connection:
+			X-Forwarded-For: %s
+			User Agent: %s`,
+			c.GetHeader("X-Forwarded-For"),
+			c.GetHeader("User-Agent"))
+
+		result := db.Create(&LogLines{
+			Uuid: "",
+			Service: "HTTPS",
+			Line: logLine,
+		})
+		if result.Error != nil {
+			c.JSON(500, gin.H{"message": "Unable to log policy request"})
+			c.Abort()
+			fmt.Println("Unable to get: ", result.Error)
+			return
+		}
+
+		c.String(200, MTA_STS_POLICY_DOC)
+		return
+	})
 	r.POST("/poll", func(c *gin.Context) {
-		response := make(map[string][]string)
+		response := make(map[string][]map[string]string)
 		var form PollForm
 		c.Bind(&form)
 		userIds := strings.Split(form.Users, ",")
@@ -60,9 +91,13 @@ func main() {
 
 		for _, line := range logLines {
 			if _, has := response[line.Uuid]; !has {
-				response[line.Uuid] = []string{}
+				response[line.Uuid] = []map[string]string{}
 			}
-			response[line.Uuid] = append(response[line.Uuid], line.Line)
+			data := map[string]string{}
+			data["service"] = line.Service
+			data["when"] = line.CreatedAt.Format(time.RFC3339)
+			data["line"] = line.Line
+			response[line.Uuid] = append(response[line.Uuid], data)
 		}
 		c.JSON(200, response)
 	})

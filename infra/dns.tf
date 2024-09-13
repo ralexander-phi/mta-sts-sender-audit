@@ -65,6 +65,6 @@ resource "digitalocean_record" "TLSRPT" {
   for_each = toset(var.mail_server_labels)
   name = "_smtp._tls.${each.key}.audit"
 
-  value = "v=TLSRPTv1; rua=mailto:${var.tlsrpt_address};"
+  value = "v=TLSRPTv1; rua=https://api.audit.alexsci.com/tlsrpt;"
 }
 

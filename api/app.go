@@ -1,10 +1,13 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -23,7 +26,8 @@ type PollForm struct {
 }
 
 func serve() {
-
+	const ONE_MB_IN_BYTES int64 = 1048576
+	TLSRPT_GZIP := "application/tlsrpt+gzip"
 	MTA_STS_POLICY_DOC := `version: STSv1
 mode: enforce
 mx: *.audit.alexsci.com
@@ -43,7 +47,7 @@ max_age: 604800`
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"pong": "true",
 		})
 	})
@@ -63,13 +67,13 @@ max_age: 604800`
 			Line:    logLine,
 		})
 		if result.Error != nil {
-			c.JSON(500, gin.H{"message": "Unable to log policy request"})
+			c.JSON(500, gin.H{"message": "Unable to log"})
 			c.Abort()
 			fmt.Println("Unable to get: ", result.Error)
 			return
 		}
 
-		c.String(200, MTA_STS_POLICY_DOC)
+		c.String(http.StatusOK, MTA_STS_POLICY_DOC)
 		return
 	})
 	r.POST("/poll", func(c *gin.Context) {
@@ -78,7 +82,7 @@ max_age: 604800`
 		c.Bind(&form)
 		userIds := strings.Split(form.Users, ",")
 		if len(userIds) > 4 || len(userIds) == 0 {
-			c.JSON(400, gin.H{"message": "Too many IDs"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Too many IDs"})
 			c.Abort()
 			return
 		}
@@ -86,7 +90,7 @@ max_age: 604800`
 		var logLines []LogLines
 		result := db.Where("uuid IN ?", userIds).Order("created_at, id").Find(&logLines)
 		if result.Error != nil {
-			c.JSON(500, gin.H{"message": "Unable to get"})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get"})
 			c.Abort()
 			fmt.Println("Unable to get: ", result.Error)
 			return
@@ -102,7 +106,45 @@ max_age: 604800`
 			data["line"] = line.Line
 			response[line.Uuid] = append(response[line.Uuid], data)
 		}
-		c.JSON(200, response)
+		c.JSON(http.StatusOK, response)
+	})
+	r.POST("/tlsrpt", func(c *gin.Context) {
+		// Protect against overly large reports
+		reader := io.LimitReader(c.Request.Body, ONE_MB_IN_BYTES)
+
+		if c.GetHeader("Content-Type") == TLSRPT_GZIP {
+			// Need to decompress
+			var err error
+			reader, err = gzip.NewReader(reader)
+			if err != nil {
+				c.String(http.StatusBadRequest, "GZIP unreadable")
+				c.Abort()
+				return
+			}
+			// Project against overly large compressed inputs
+			reader = io.LimitReader(reader, ONE_MB_IN_BYTES)
+		}
+
+		// Read the whole report
+		body, err := ioutil.ReadAll(reader)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Report unreadable")
+			c.Abort()
+			return
+		}
+
+		result := db.Create(&LogLines{
+			Uuid:    "",
+			Service: "TLSRPT",
+			Line:    string(body),
+		})
+		if result.Error != nil {
+			c.String(500, "Unable to log")
+			c.Abort()
+			fmt.Println("Unable to get: ", result.Error)
+			return
+		}
+		c.String(http.StatusOK, "OK")
 	})
 	r.Run()
 }

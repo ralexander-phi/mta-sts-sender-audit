@@ -121,7 +121,7 @@ services:
     image: postgres:15.2
     restart: unless-stopped
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - postfix-audit-db:/var/lib/postgresql/data
     networks:
       privatenet:
         ipv4_address: 10.11.26.36
@@ -142,3 +142,5 @@ networks:
           ip_range: 10.11.26.0/26
           gateway: 10.11.26.254
 
+volumes:
+  postfix-audit-db:

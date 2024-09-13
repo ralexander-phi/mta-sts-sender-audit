@@ -2,5 +2,5 @@
 
 Planning:
 
-    $ tofu plan -var-file=prod.tf
+    $ tofu plan -var-file=prod.tfvars
 

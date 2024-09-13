@@ -4,7 +4,12 @@ set -e
 
 docker compose --env-file dev.env build
 docker compose --env-file dev.env down || true
+
+# Purge old DB
+docker volume rm postfix-tls-audit_postfix-audit-db || true
+
 docker compose --env-file dev.env up -d --wait
+
 
 subdomains=(a b c d)
 for i in {1..4}
@@ -43,6 +48,10 @@ do
     echo "Server $subdomain looks OK!"
     echo ""
 done
+
+# Check TLS reporting
+curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/tlsrpt -d "TLS REPORT"
+curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users= | grep "TLS REPORT"
 
 docker compose --env-file dev.env down
 echo ""

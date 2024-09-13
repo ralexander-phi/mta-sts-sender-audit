@@ -16,3 +16,4 @@ COPY --from=build-stage /app /app
 EXPOSE 8080
 USER nonroot:nonroot
 ENTRYPOINT ["/app"]
+HEALTHCHECK --interval=10s --timeout=1s --start-interval=1s CMD ["/app", "health"]

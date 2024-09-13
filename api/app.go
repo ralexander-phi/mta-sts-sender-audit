@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -12,17 +13,17 @@ import (
 
 type LogLines struct {
 	gorm.Model
-	Uuid string
+	Uuid    string
 	Service string
-	Line string
+	Line    string
 }
-
 
 type PollForm struct {
 	Users string `form:"users"`
 }
 
-func main() {
+func serve() {
+
 	MTA_STS_POLICY_DOC := `version: STSv1
 mode: enforce
 mx: *.audit.alexsci.com
@@ -50,14 +51,16 @@ max_age: 604800`
 		// Log info about the connecting client
 		logLine := fmt.Sprintf(`HTTP connection:
 			X-Forwarded-For: %s
+			Host: %s
 			User Agent: %s`,
 			c.GetHeader("X-Forwarded-For"),
+			c.Request.Host,
 			c.GetHeader("User-Agent"))
 
 		result := db.Create(&LogLines{
-			Uuid: "",
+			Uuid:    "",
 			Service: "HTTPS",
-			Line: logLine,
+			Line:    logLine,
 		})
 		if result.Error != nil {
 			c.JSON(500, gin.H{"message": "Unable to log policy request"})
@@ -102,4 +105,27 @@ max_age: 604800`
 		c.JSON(200, response)
 	})
 	r.Run()
+}
+
+func healthcheck() {
+	resp, err := http.Get("http://127.0.0.1:8080/health")
+	if err != nil {
+		fmt.Printf("Bad GET: %v\n", err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	// Just look for 200 OK status
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Bad status code: %d\n", resp.StatusCode)
+		os.Exit(1)
+	}
+	fmt.Println("UP")
+}
+
+func main() {
+	if len(os.Args) == 2 && os.Args[1] == "health" {
+		healthcheck()
+	} else {
+		serve()
+	}
 }

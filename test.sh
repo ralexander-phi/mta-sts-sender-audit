@@ -18,7 +18,9 @@ do
     # Not on third server
     if (( $i != 3 ));
     then
-        curl -k -H "Host: mta-sts.$i.audit.alexsci.com" https://127.0.0.1:8443/.well-known/mta-sts.txt | grep "enforce"
+        curl -k -H "Host: mta-sts.$subdomain.audit.alexsci.com" https://127.0.0.1:8443/.well-known/mta-sts.txt | grep "enforce"
+	# Make sure it was logged
+        curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users= | grep "mta-sts.${subdomain}.audit.alexsci.com"
     else
         echo "C won't have a policy hosted"
     fi
@@ -35,6 +37,7 @@ do
 
     echo "Checking that email has been seen"
     curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "$UUID" | grep "Message Received"
+    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "$UUID" | grep "MSG: This Is The Message"
 
     echo ""
     echo "Server $subdomain looks OK!"

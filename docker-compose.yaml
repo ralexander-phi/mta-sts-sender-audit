@@ -20,6 +20,8 @@ services:
       - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
+    depends_on:
+      - db
 
   # Invalid: MTA-STS with unknown/untrusted CA
   postfix-uk-mta-sts:
@@ -38,6 +40,8 @@ services:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
+    depends_on:
+      - db
 
   # Value but insecure: Unknown/untrusted CA (no MTA-STS)
   postfix-uk:
@@ -56,6 +60,8 @@ services:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
+    depends_on:
+      - db
 
   # Invalid: MTA-STS with unknown/untrusted CA
   # but with a spoofed (non-DNSSEC) DANE record
@@ -75,6 +81,8 @@ services:
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
+    depends_on:
+      - db
 
   #
   # API for web frontend

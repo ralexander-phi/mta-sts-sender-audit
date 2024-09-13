@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,9 +13,9 @@ import (
 
 type LogLines struct {
 	gorm.Model
-	Uuid string
+	Uuid    string
 	Service string
-	Line string
+	Line    string
 }
 
 func main() {
@@ -61,11 +62,27 @@ func main() {
 		os.Getenv("CLIENT_HOSTNAME"),
 		os.Getenv("CLIENT_PROTOCOL"))
 	result := db.Create(&LogLines{
-		Uuid: userId,
+		Uuid:    userId,
 		Service: "postfix",
-		Line: logLine,
+		Line:    logLine,
 	})
 	if result.Error != nil {
 		panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
+	}
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		result := db.Create(&LogLines{
+			Uuid:    userId,
+			Service: "postfix",
+			Line:    fmt.Sprintf("MSG: %s", scanner.Text()),
+		})
+		if result.Error != nil {
+			panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
+		}
+	}
+
+	if scanner.Err() != nil {
+		panic(fmt.Sprintf("Unable to insert body: %v", scanner.Err()))
 	}
 }

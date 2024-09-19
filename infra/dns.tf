@@ -15,12 +15,18 @@ resource "digitalocean_record" "A-mail-a" {
   value  = data.digitalocean_reserved_ip.prod.ip_address
 }
 
-
 resource "digitalocean_record" "A-mail-b" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "A"
   name   = "mail-b.audit"
   value  = data.digitalocean_droplet.prod.ipv4_address
+}
+
+resource "digitalocean_record" "AAAA-mail-c" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type   = "AAAA"
+  name   = "mail-c.audit"
+  value  = data.digitalocean_droplet.prod.ipv6_address
 }
 
 

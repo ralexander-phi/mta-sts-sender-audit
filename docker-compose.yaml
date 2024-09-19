@@ -43,21 +43,21 @@ services:
     depends_on:
       - db
 
-  # Value but insecure: Unknown/untrusted CA (no MTA-STS)
-  postfix-uk:
+  # Valid: MTA-STS with Let's Encrypt (IPv6 tester)
+  postfix-le-mta-sts-ipv6:
     build:
       context: postfix
       args:
         name: c
-        certdomain: mail-c.audit.alexsci.com
+        certdomain: audit.alexsci.com
     restart: unless-stopped
     networks:
       privatenet:
         ipv4_address: 10.11.26.13
     ports:
-      - "${IP2:?error}:${HOST_MAIL_PORT:?error}:25"
+      - "${IPV6_0:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
-      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+      - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
     depends_on:

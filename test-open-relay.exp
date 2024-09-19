@@ -1,0 +1,18 @@
+#!/usr/bin/expect
+
+set TARGET_IP [lindex $argv 0]
+set UUID [lindex $argv 1]
+set DOMAIN [lindex $argv 2]
+
+# Try to send email out (without TLS)
+spawn telnet $TARGET_IP 1025
+
+expect -r "220 .*\r"
+send -- "HELO me\r"
+expect -re "250 .*\r"
+send -- "MAIL FROM: me@me\r"
+expect "250 2.1.0 Ok\r"
+send -- "RCPT TO: $UUID@google.com\r"
+expect -r "554 .*: Relay access denied\r"
+send -- "quit\r"
+expect "221 2.0.0 Bye"

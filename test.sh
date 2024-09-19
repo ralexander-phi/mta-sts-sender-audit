@@ -12,16 +12,18 @@ docker compose --env-file dev.env up -d --wait
 
 
 subdomains=(a b c d)
-for i in {1..4}
+ips=(127.0.0.1 127.0.0.2 "::1" 127.0.0.4)
+for i in {0..3}
 do
-    subdomain=${subdomains[$i-1]}
-    echo "Checking server ($i) $subdomain"
+    subdomain=${subdomains[$i]}
+    ip=${ips[$i]}
+    echo "Checking server ($ip) $subdomain"
     UUID=$(uuidgen)
     echo "Using USERID: ${UUID}"
 
     # Ensure the MTA-STS policy is available on both HTTP and HTTPS
     # Not on third server
-    if (( $i != 3 ));
+    if (( $i != 2 ));
     then
         curl -k -H "Host: mta-sts.$subdomain.audit.alexsci.com" https://127.0.0.1:8443/.well-known/mta-sts.txt | grep "enforce"
 	# Make sure it was logged
@@ -35,7 +37,14 @@ do
     curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "{}"
 
     echo "Send the emails"
-    ./test-send-email.exp 127.0.0.$i $UUID $subdomain.audit.alexsci.com
+    if [[ $ip == ::* ]];
+    then
+        ./test-send-email.exp "[${ip}]" "${UUID}" "${subdomain}.audit.alexsci.com"
+    else
+        ./test-send-email.exp "${ip}" "${UUID}" "${subdomain}.audit.alexsci.com"
+    fi
+
+    ./test-open-relay.exp "${ip}" "${UUID}" "${subdomain}.audit.alexsci.com"
 
     # Email processing takes some time...
     sleep 1

@@ -9,13 +9,13 @@ variable "home_ip" {
 # All mail servers
 variable "mail_server_labels" {
   type = list(string)
-  default = ["a", "b"]
+  default = ["a", "b", "c"]
 }
 
 # Which mail servers should have MTA-STS DNS records
 variable "mail_servers_with_sts_labels" {
   type = list(string)
-  default = ["a", "b"]
+  default = ["a", "b", "c"]
 }
 
 variable "mta_sts_policy_record" {

@@ -8,11 +8,11 @@ docker compose --env-file dev.env down || true
 # Purge old DB
 docker volume rm postfix-tls-audit_postfix-audit-db || true
 
-docker compose --env-file dev.env up -d --wait
+docker compose --env-file dev.env up -d --wait --remove-orphans
 
 
 subdomains=(a b c d)
-ips=(127.0.0.1 127.0.0.2 "::1" 127.0.0.4)
+ips=(127.0.0.1 127.0.0.2 "::1" 127.0.0.10)
 for i in {0..3}
 do
     subdomain=${subdomains[$i]}
@@ -37,9 +37,12 @@ do
     curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "{}"
 
     echo "Send the emails"
-    if [[ $ip == ::* ]];
+    if (( $i == 2 ));
     then
         ./test-send-email.exp "[${ip}]" "${UUID}" "${subdomain}.audit.alexsci.com"
+    elif (( $i == 3 ));
+    then
+        ./test-send-email-no-tls.exp "${ip}" "${UUID}" "${subdomain}.audit.alexsci.com"
     else
         ./test-send-email.exp "${ip}" "${UUID}" "${subdomain}.audit.alexsci.com"
     fi

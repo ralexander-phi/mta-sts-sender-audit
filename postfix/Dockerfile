@@ -13,10 +13,12 @@ RUN pip install jinja2-cli
 COPY main.cf.tmpl /main.cf.tmpl
 ARG name
 ARG certdomain
+ARG tlsSecurityLevel
 RUN jinja2 /main.cf.tmpl                     \
     -D hostname=mail-$name.audit.alexsci.com \
     -D destname=$name.audit.alexsci.com      \
     -D certdomain=$certdomain                \
+    -D tlsSecurityLevel=$tlsSecurityLevel    \
     -o /main.cf
 
 

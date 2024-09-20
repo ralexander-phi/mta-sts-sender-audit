@@ -4,6 +4,7 @@ resource "digitalocean_record" "api" {
   type   = "A"
   name   = "api.audit"
   value  = data.digitalocean_reserved_ip.prod.ip_address
+  ttl    = 1800
 }
 
 
@@ -13,6 +14,7 @@ resource "digitalocean_record" "A-mail-a" {
   type   = "A"
   name   = "mail-a.audit"
   value  = data.digitalocean_reserved_ip.prod.ip_address
+  ttl    = 1800
 }
 
 resource "digitalocean_record" "A-mail-b" {
@@ -20,20 +22,30 @@ resource "digitalocean_record" "A-mail-b" {
   type   = "A"
   name   = "mail-b.audit"
   value  = data.digitalocean_droplet.prod.ipv4_address
+  ttl    = 1800
 }
 
 resource "digitalocean_record" "AAAA-mail-c" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "AAAA"
   name   = "mail-c.audit"
-  value  = data.digitalocean_droplet.prod.ipv6_address
+  value  = cidrhost("${data.digitalocean_droplet.prod.ipv6_address}/${var.ipv6_subnet_size}", 1)
+  ttl    = 1800
 }
 
+resource "digitalocean_record" "AAAA-mail-d" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type   = "AAAA"
+  name   = "mail-d.audit"
+  value  = cidrhost("${data.digitalocean_droplet.prod.ipv6_address}/${var.ipv6_subnet_size}", 2)
+  ttl    = 1800
+}
 
 resource "digitalocean_record" "MX-mail" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "MX"
   priority = 50
+  ttl    = 1800
 
   for_each = toset(var.mail_server_labels)
   name   = "${each.key}.audit"
@@ -45,6 +57,7 @@ resource "digitalocean_record" "MX-mail" {
 resource "digitalocean_record" "A-a" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "A"
+  ttl    = 1800
 
   for_each = toset(var.mail_servers_with_sts_labels)
   name   = "mta-sts.${each.key}.audit"
@@ -57,6 +70,7 @@ resource "digitalocean_record" "A-a" {
 resource "digitalocean_record" "TXT-mta-sts" {
   domain = data.digitalocean_domain.alexsci-com.id
   type = "TXT"
+  ttl    = 1800
 
   for_each = toset(var.mail_servers_with_sts_labels)
   name = "_mta-sts.${each.key}.audit"
@@ -67,6 +81,7 @@ resource "digitalocean_record" "TXT-mta-sts" {
 resource "digitalocean_record" "TLSRPT" {
   domain = data.digitalocean_domain.alexsci-com.id
   type = "TXT"
+  ttl    = 1800
 
   for_each = toset(var.mail_server_labels)
   name = "_smtp._tls.${each.key}.audit"

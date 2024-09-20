@@ -1,0 +1,24 @@
+#!/usr/bin/expect
+
+set TARGET_IP [lindex $argv 0]
+set UUID [lindex $argv 1]
+set DOMAIN [lindex $argv 2]
+
+spawn telnet $TARGET_IP 1025
+
+expect -r "220 .*\r"
+send -- "HELO me\r"
+expect -re "250 .*\r"
+send -- "mail from: me@me\r"
+expect "250 2.1.0 Ok\r"
+send -- "rcpt to: $UUID@$DOMAIN\r"
+expect "250 2.1.5 Ok\r"
+send -- "data\r"
+expect "354 End data with <CR><LF>.<CR><LF>\r"
+send -- "Subject: test\r"
+send -- "\r"
+send -- "This Is The Message\r"
+send -- ".\r"
+expect "250 2.0.0 Ok: queued as"
+send -- "quit\r"
+expect "221 2.0.0 Bye"

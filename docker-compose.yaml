@@ -10,6 +10,7 @@ services:
       args:
         name: a
         certdomain: audit.alexsci.com
+        tlsSecurityLevel: may
     restart: unless-stopped
     networks:
       privatenet:
@@ -30,6 +31,7 @@ services:
       args:
         name: b
         certdomain: mail-b.audit.alexsci.com
+        tlsSecurityLevel: may
     restart: unless-stopped
     networks:
       privatenet:
@@ -50,6 +52,7 @@ services:
       args:
         name: c
         certdomain: audit.alexsci.com
+        tlsSecurityLevel: may
     restart: unless-stopped
     networks:
       privatenet:
@@ -63,22 +66,19 @@ services:
     depends_on:
       - db
 
-  # Invalid: MTA-STS with unknown/untrusted CA
-  # but with a spoofed (non-DNSSEC) DANE record
-  postfix-uk-mta-sts-dane:
+  # Invalid: MTA-STS but doesn't use TLS (IPv6)
+  postfix-no-encrypt:
     build:
       context: postfix
       args:
         name: d
-        certdomain: mail-d.audit.alexsci.com
+        tlsSecurityLevel: none
     restart: unless-stopped
     networks:
       privatenet:
         ipv4_address: 10.11.26.14
     ports:
-      - "${IP3:?error}:${HOST_MAIL_PORT:?error}:25"
-    volumes:
-      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+      - "${IPV6_1:?error}:${HOST_MAIL_PORT:?error}:25"
     environment:
       - POSTGRES_PASSWORD
     depends_on:

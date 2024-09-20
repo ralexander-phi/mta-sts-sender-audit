@@ -19,9 +19,12 @@ smtpd_relay_restrictions = reject_unauth_destination
 smtp_tls_security_level = dane-only
 
 # Enable TLS
-smtpd_tls_security_level = may
+smtpd_tls_security_level = {{ tlsSecurityLevel }}
+
+{% if certdomain %}
 smtpd_tls_cert_file = /etc/letsencrypt/live/{{ certdomain }}/fullchain.pem
 smtpd_tls_key_file = /etc/letsencrypt/live/{{ certdomain }}/privkey.pem
+{% endif %}
 
 # Logging
 maillog_file = /dev/stdout

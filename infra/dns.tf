@@ -41,6 +41,30 @@ resource "digitalocean_record" "AAAA-mail-d" {
   ttl    = 1800
 }
 
+resource "digitalocean_record" "AAAA-mail-e" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type   = "AAAA"
+  name   = "mail-e.audit"
+  value  = cidrhost("${data.digitalocean_droplet.prod.ipv6_address}/${var.ipv6_subnet_size}", 3)
+  ttl    = 1800
+}
+
+resource "digitalocean_record" "AAAA-mail-f" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type   = "AAAA"
+  name   = "mail-f.audit"
+  value  = cidrhost("${data.digitalocean_droplet.prod.ipv6_address}/${var.ipv6_subnet_size}", 4)
+  ttl    = 1800
+}
+
+resource "digitalocean_record" "AAAA-mail-g" {
+  domain = data.digitalocean_domain.alexsci-com.id
+  type   = "AAAA"
+  name   = "mail-g.audit"
+  value  = cidrhost("${data.digitalocean_droplet.prod.ipv6_address}/${var.ipv6_subnet_size}", 5)
+  ttl    = 1800
+}
+
 resource "digitalocean_record" "MX-mail" {
   domain = data.digitalocean_domain.alexsci-com.id
   type   = "MX"

@@ -84,6 +84,69 @@ services:
     depends_on:
       - db
 
+  # Valid: MTA-STS with Let's Encrypt (IPv6, requires TLS)
+  postfix-le-mta-sts-required:
+    build:
+      context: postfix
+      args:
+        name: e
+        certdomain: audit.alexsci.com
+        tlsSecurityLevel: encrypt
+    restart: unless-stopped
+    networks:
+      privatenet:
+        ipv4_address: 10.11.26.15
+    ports:
+      - "${IPV6_2:?error}:${HOST_MAIL_PORT:?error}:25"
+    volumes:
+      - "${CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
+    depends_on:
+      - db
+
+  # Valid: Legacy / Plaintext only - No MTA-STS
+  postfix-legacy-no-tls:
+    build:
+      context: postfix
+      args:
+        name: f
+        certdomain: audit.alexsci.com
+        tlsSecurityLevel: none
+    restart: unless-stopped
+    networks:
+      privatenet:
+        ipv4_address: 10.11.26.16
+    ports:
+      - "${IPV6_3:?error}:${HOST_MAIL_PORT:?error}:25"
+    environment:
+      - POSTGRES_PASSWORD
+    depends_on:
+      - db
+
+  # Valid: DANE - No MTA-STS
+  # TODO: setup DANE
+  postfix-dane-valid:
+    build:
+      context: postfix
+      args:
+        name: g
+        certdomain: audit.alexsci.com
+        tlsSecurityLevel: encrypt
+    restart: unless-stopped
+    networks:
+      privatenet:
+        ipv4_address: 10.11.26.17
+    ports:
+      - "${IPV6_4:?error}:${HOST_MAIL_PORT:?error}:25"
+    volumes:
+      # The cert is invalid per trusted CAs, but the DANE record will validate it
+      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
+    environment:
+      - POSTGRES_PASSWORD
+    depends_on:
+      - db
+
   #
   # API for web frontend
   #

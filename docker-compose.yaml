@@ -124,9 +124,8 @@ services:
     depends_on:
       - db
 
-  # Valid: DANE - No MTA-STS
-  # TODO: setup DANE
-  postfix-dane-valid:
+  # MTA-STS bypass: DANE without DNSSEC
+  postfix-dane-bypass:
     build:
       context: postfix
       args:
@@ -141,6 +140,8 @@ services:
       - "${IPV6_4:?error}:${HOST_MAIL_PORT:?error}:25"
     volumes:
       # The cert is invalid per trusted CAs, but the DANE record will validate it
+      # DigitalOcean doesn't have DNSSEC support, so we'll do fake DANE
+      # I.E.: DANE without DNSSEC, which isn't a good idea
       - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD

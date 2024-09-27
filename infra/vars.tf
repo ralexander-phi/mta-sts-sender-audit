@@ -17,8 +17,7 @@ variable "mail_servers_with_sts_labels" {
   type = list(string)
   # Excludes:
   # f - Legacy non-TLS server
-  # g - DANE TLS server
-  default = ["a", "b", "c", "d", "e"]
+  default = ["a", "b", "c", "d", "e", "g"]
 }
 
 variable "mta_sts_policy_record" {

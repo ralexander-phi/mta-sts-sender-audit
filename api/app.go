@@ -88,7 +88,7 @@ max_age: 604800`
 		var form PollForm
 		c.Bind(&form)
 		userIds := strings.Split(form.Users, ",")
-		if len(userIds) > 4 || len(userIds) == 0 {
+		if len(userIds) > 6 || len(userIds) == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "Too many IDs"})
 			c.Abort()
 			return

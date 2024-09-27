@@ -124,30 +124,6 @@ services:
     depends_on:
       - db
 
-  # MTA-STS bypass: DANE without DNSSEC
-  postfix-dane-bypass:
-    build:
-      context: postfix
-      args:
-        name: g
-        certdomain: audit.alexsci.com
-        tlsSecurityLevel: encrypt
-    restart: unless-stopped
-    networks:
-      privatenet:
-        ipv4_address: 10.11.26.17
-    ports:
-      - "${IPV6_4:?error}:${HOST_MAIL_PORT:?error}:25"
-    volumes:
-      # The cert is invalid per trusted CAs, but the DANE record will validate it
-      # DigitalOcean doesn't have DNSSEC support, so we'll do fake DANE
-      # I.E.: DANE without DNSSEC, which isn't a good idea
-      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
-    environment:
-      - POSTGRES_PASSWORD
-    depends_on:
-      - db
-
   #
   # API for web frontend
   #

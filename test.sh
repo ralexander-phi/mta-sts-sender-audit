@@ -11,9 +11,9 @@ docker volume rm postfix-tls-audit_postfix-audit-db || true
 docker compose --env-file dev.env up -d --wait --remove-orphans
 
 
-subdomains=(a b c d e f g)
-ips=(127.0.0.1 127.0.0.2 "::1" 127.0.0.10 127.0.0.11 127.0.0.12 127.0.0.13)
-for i in {0..6}
+subdomains=(a b c d e f)
+ips=(127.0.0.1 127.0.0.2 "::1" 127.0.0.10 127.0.0.11 127.0.0.12)
+for i in {0..5}
 do
     subdomain=${subdomains[$i]}
     ip=${ips[$i]}

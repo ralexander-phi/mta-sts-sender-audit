@@ -9,7 +9,7 @@ variable "home_ip" {
 # All mail servers
 variable "mail_server_labels" {
   type = list(string)
-  default = ["a", "b", "c", "d", "e", "f", "g"]
+  default = ["a", "b", "c", "d", "e", "f"]
 }
 
 # Which mail servers should have MTA-STS DNS records
@@ -17,7 +17,7 @@ variable "mail_servers_with_sts_labels" {
   type = list(string)
   # Excludes:
   # f - Legacy non-TLS server
-  default = ["a", "b", "c", "d", "e", "g"]
+  default = ["a", "b", "c", "d", "e"]
 }
 
 variable "mta_sts_policy_record" {

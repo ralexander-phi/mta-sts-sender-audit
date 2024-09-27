@@ -2,12 +2,13 @@ package main
 
 import (
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -19,10 +20,12 @@ type LogLines struct {
 	Uuid    string
 	Service string
 	Line    string
+	Public  bool
 }
 
 type PollForm struct {
-	Users string `form:"users"`
+	Users  string `form:"users"`
+	Secret string `form:"secret"`
 }
 
 func serve() {
@@ -42,6 +45,9 @@ max_age: 604800`
 
 	// Auto-migration
 	db.AutoMigrate(&LogLines{})
+
+	// Admin secret
+	adminSecret := os.Getenv("ADMIN_SECRET")
 
 	// Gin setup
 	gin.SetMode(gin.ReleaseMode)
@@ -65,6 +71,7 @@ max_age: 604800`
 			Uuid:    "",
 			Service: "HTTPS",
 			Line:    logLine,
+			Public:  true,
 		})
 		if result.Error != nil {
 			c.JSON(500, gin.H{"message": "Unable to log"})
@@ -87,8 +94,25 @@ max_age: 604800`
 			return
 		}
 
+		// Special admin access
+		isAdmin := false
+		if form.Secret != "" {
+			actual := fmt.Sprintf("%x", sha256.Sum256([]byte(form.Secret)))
+			if actual == adminSecret {
+				isAdmin = true
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"message": "Wrong secret"})
+				c.Abort()
+				return
+			}
+		}
+
 		var logLines []LogLines
-		result := db.Where("uuid IN ?", userIds).Order("created_at, id").Find(&logLines)
+		query := db.Where("uuid IN ?", userIds)
+		if !isAdmin {
+			query = query.Where("public = ?", true)
+		}
+		result := query.Order("created_at, id").Find(&logLines)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get"})
 			c.Abort()
@@ -137,6 +161,7 @@ max_age: 604800`
 			Uuid:    "",
 			Service: "TLSRPT",
 			Line:    string(body),
+			Public:  true,
 		})
 		if result.Error != nil {
 			c.String(500, "Unable to log")

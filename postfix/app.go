@@ -16,6 +16,7 @@ type LogLines struct {
 	Uuid    string
 	Service string
 	Line    string
+	Public  bool
 }
 
 func main() {
@@ -65,6 +66,7 @@ func main() {
 		Uuid:    userId,
 		Service: "postfix",
 		Line:    logLine,
+		Public:  true,
 	})
 	if result.Error != nil {
 		panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
@@ -76,6 +78,7 @@ func main() {
 			Uuid:    userId,
 			Service: "postfix",
 			Line:    fmt.Sprintf("MSG: %s", scanner.Text()),
+			Public:  false,
 		})
 		if result.Error != nil {
 			panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))

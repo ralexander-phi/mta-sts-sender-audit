@@ -61,7 +61,7 @@ do
 
     echo "Checking that email has been seen"
     curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "$UUID" | grep "Message Received"
-    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID | grep "$UUID" | grep "MSG: This Is The Message"
+    curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users=$UUID -F secret=INSECURE-1234 | grep "$UUID" | grep "MSG: This Is The Message"
 
     echo ""
     echo "Server $subdomain looks OK!"

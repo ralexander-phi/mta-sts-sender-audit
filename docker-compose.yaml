@@ -137,6 +137,7 @@ services:
       - db
     environment:
       - POSTGRES_PASSWORD
+      - ADMIN_SECRET
 
   #
   # Static hosting for MTA-STS policy files

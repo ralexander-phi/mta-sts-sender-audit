@@ -26,7 +26,7 @@ do
     if (( $i != 5 && $i != 6 ));
     then
         curl -k -H "Host: mta-sts.$subdomain.audit.alexsci.com" https://127.0.0.1:8443/.well-known/mta-sts.txt | grep "enforce"
-	# Make sure it was logged
+        # Make sure it was logged
         curl -k -H "Host: api.audit.alexsci.com" https://127.0.0.1:8443/poll -F users= | grep "mta-sts.${subdomain}.audit.alexsci.com"
     else
         echo "$subdomain won't have a policy hosted"
@@ -41,7 +41,7 @@ do
     then
         # This one uses IPv6
         ./test-send-email.exp "[${ip}]" "${UUID}" "${subdomain}.audit.alexsci.com"
-    elif (( $i == 3 || $i == 5));
+    elif (( $i == 1 || $i == 5));
     then
         # These ones doesn't support TLS
         ./test-send-email-no-tls.exp "${ip}" "${UUID}" "${subdomain}.audit.alexsci.com"

@@ -24,22 +24,19 @@ services:
     depends_on:
       - db
 
-  # Invalid: MTA-STS with unknown/untrusted CA
-  postfix-uk-mta-sts:
+  # Invalid: MTA-STS but doesn't use TLS
+  postfix-no-encrypt:
     build:
       context: postfix
       args:
         name: b
-        certdomain: mail-b.audit.alexsci.com
-        tlsSecurityLevel: may
+        tlsSecurityLevel: none
     restart: unless-stopped
     networks:
       privatenet:
         ipv4_address: 10.11.26.12
     ports:
       - "${IP1:?error}:${HOST_MAIL_PORT:?error}:25"
-    volumes:
-      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
     depends_on:
@@ -66,19 +63,22 @@ services:
     depends_on:
       - db
 
-  # Invalid: MTA-STS but doesn't use TLS (IPv6)
-  postfix-no-encrypt:
+  # Invalid: MTA-STS with unknown/untrusted CA
+  postfix-uk-mta-sts:
     build:
       context: postfix
       args:
         name: d
-        tlsSecurityLevel: none
+        certdomain: mail-b.audit.alexsci.com
+        tlsSecurityLevel: may
     restart: unless-stopped
     networks:
       privatenet:
         ipv4_address: 10.11.26.14
     ports:
       - "${IPV6_1:?error}:${HOST_MAIL_PORT:?error}:25"
+    volumes:
+      - "${INVALID_CERTS_PATH:?error}/:/etc/letsencrypt/:ro"
     environment:
       - POSTGRES_PASSWORD
     depends_on:

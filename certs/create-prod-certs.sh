@@ -12,5 +12,6 @@ sudo certbot certonly \
       -d 'mta-sts.a.audit.alexsci.com'                   \
       -d 'mta-sts.b.audit.alexsci.com'                   \
       -d 'mta-sts.c.audit.alexsci.com'                   \
-      -d 'mta-sts.d.audit.alexsci.com'
+      -d 'mta-sts.d.audit.alexsci.com'                   \
+      -d 'mta-sts.e.audit.alexsci.com'
 

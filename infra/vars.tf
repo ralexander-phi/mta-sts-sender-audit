@@ -25,11 +25,6 @@ variable "mta_sts_policy_record" {
   default = "v=STSv1; id=20240906T1730;"
 }
 
-variable "tlsrpt_address" {
-  type = string
-  default = "tlsrpt-audit@robalexdev.com"
-}
-
 variable "ipv6_subnet_size" {
   type = number
   default = 124

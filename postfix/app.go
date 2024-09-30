@@ -47,6 +47,7 @@ func main() {
 	// Auto-migration
 	db.AutoMigrate(&LogLines{})
 
+	// Log metadata about the message
 	logLine := fmt.Sprintf(`Message Received:
 		ENVID: %s
 		SENDER: %s
@@ -72,6 +73,7 @@ func main() {
 		panic(fmt.Sprintf("Unable to insert log: %v\n", result.Error))
 	}
 
+	// Log the body of the email, but mark as non-public to prevent abuse
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		result := db.Create(&LogLines{

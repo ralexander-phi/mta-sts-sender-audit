@@ -7,7 +7,7 @@ resource "digitalocean_firewall" "prod" {
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = ["173.79.54.83"]
+    source_addresses = [var.home_ip]
   }
 
   # HTTPS in from world

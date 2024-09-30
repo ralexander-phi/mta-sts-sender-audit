@@ -5,7 +5,7 @@ A collection of mail servers that can audit MTA-STS.
 
 ## Blog post
 
-Coming soon
+[Learn more in the blog post](https://alexsci.com/blog/smtp-downgrade-attacks-and-mta-sts/)
 
 
 ## Stack

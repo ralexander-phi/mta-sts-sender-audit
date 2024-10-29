@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"slices"
 	"strings"
 
 	"gorm.io/driver/postgres"
@@ -26,7 +27,18 @@ func main() {
 	if !success {
 		panic(fmt.Sprintf("Can't find user ID in: %s\n", recipient))
 	}
-	if len(userId) != 36 {
+
+	// From CAB baseline requirements
+	ADMIN_USERS_IDS := []string{
+		"admin",
+		"administrator",
+		"webmaster",
+		"hostmaster",
+		"postmaster",
+	}
+
+	isAdmin := slices.Contains(ADMIN_USERS_IDS, userId)
+	if len(userId) != 36 && !isAdmin {
 		panic(fmt.Sprintf("User ID looks invalid: %s\n", userId))
 	}
 
